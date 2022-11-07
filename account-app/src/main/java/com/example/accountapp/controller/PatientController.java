@@ -1,8 +1,11 @@
 package com.example.accountapp.controller;
 
 import com.example.accountapp.model.Patient;
+import com.example.accountapp.model.PatientModel;
+import com.example.accountapp.model.PatientResourceAssembler;
 import com.example.accountapp.repository.PatientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -11,19 +14,20 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 @Service
 @Controller
-@RequestMapping("/api-v1/patient")
+@RequestMapping("/api-v1/patients")
 public class PatientController {
 
-    private PatientRepository patientRepository;
+    private final PatientRepository patientRepository;
+    private final PatientResourceAssembler assembler;
 
     @Autowired
-    PatientController(PatientRepository patientRepository) {
+    PatientController(PatientRepository patientRepository, PatientResourceAssembler assembler) {
         this.patientRepository = patientRepository;
+        this.assembler = assembler;
     }
 
     @PostMapping
@@ -70,15 +74,23 @@ public class PatientController {
     }
 
     @GetMapping(value="/{patientId}")
-    ResponseEntity<Patient> getPatient(@PathVariable("patientId") long id) {
-        return ResponseEntity.ok(patientRepository.findById(id).orElseThrow());
+    public ResponseEntity<PatientModel>getPatient(@PathVariable("patientId") long id) {
+        return patientRepository.findById(id)
+                .map(assembler::toModel)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping
-    ResponseEntity<Collection<Patient>> getPatients() {
+    public ResponseEntity<CollectionModel<PatientModel>> getPatients() {
         List<Patient> patients = new ArrayList<Patient>();
-        patientRepository.findAll().forEach(patients::add);
-        return ResponseEntity.ok(patients);
+        patientRepository
+                .findAll()
+                .forEach(patients::add);
+
+        return new ResponseEntity<>(
+                assembler.toCollectionModel(patients),
+                HttpStatus.OK);
     }
 
     @DeleteMapping(value="/{patientId}")

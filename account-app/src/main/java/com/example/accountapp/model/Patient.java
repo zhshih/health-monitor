@@ -13,7 +13,11 @@ import java.time.LocalDateTime;
 public class Patient {
 
     public enum Gender {
-        MALE, FEMALE, OTHER;
+        MALE, FEMALE, OTHER
+    }
+
+    public enum BloodType {
+        A, B, AB, O
     }
 
     @Id
@@ -23,6 +27,7 @@ public class Patient {
     private String lastName;
     private double height;
     private double weight;
+    private BloodType bloodType;
     private String birthDate;
     private Gender gender;
     private LocalDateTime monitoredDateTime;
