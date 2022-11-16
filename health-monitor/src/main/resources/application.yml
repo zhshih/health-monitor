@@ -1,0 +1,17 @@
+spring:
+  cloud:
+    stream:
+      function:
+        definition: healthInfoSupplier; healthInfoConsumer
+
+      bindings:
+        healthInfoSupplier-out-0:
+          destination: health-info
+        healthInfoConsumer-in-0:
+          destination: health-info
+
+      kafka:
+        binder:
+          zkNodes: localhost
+          brokers: localhost
+          replication-factor: 1
