@@ -1,7 +1,7 @@
 package com.example.healthmonitor.stream;
 
 import com.example.healthmonitor.model.HealthInfo;
-import com.example.healthmonitor.servcie.TestService;
+import com.example.healthmonitor.servcie.HealthMonitorService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -9,6 +9,8 @@ import org.springframework.context.annotation.Configuration;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -21,7 +23,8 @@ import java.util.stream.Stream;
 public class StreamConfiguration {
 
     @Autowired
-    private TestService testService;
+    private HealthMonitorService healthMonitorService;
+    private static long id = 1;
 
     @Bean
     public Supplier<Flux<List<HealthInfo>>> healthInfoSupplier() {
@@ -39,6 +42,7 @@ public class StreamConfiguration {
                         .systolicBloodPressure(ThreadLocalRandom.current().nextDouble(100, 200))
                         .diastolicBloodPressure(ThreadLocalRandom.current().nextDouble(100, 200))
                         .heartBeat(ThreadLocalRandom.current().nextInt(100, 200))
+                        .createAt(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS))
                         .build();
                 healthInfos.add(healthInfo);
             }
@@ -50,7 +54,7 @@ public class StreamConfiguration {
     public Consumer<Flux<List<HealthInfo>>> healthInfoConsumer() {
         return flux -> flux
                 .doOnNext(healthInfos -> log.info("received healthInfo = {}", healthInfos))
-                .doOnNext(healthInfos -> testService.processHealthInfo(healthInfos))
+                .doOnNext(healthInfos -> healthMonitorService.processHealthInfo(healthInfos))
                 .subscribe();
     }
 }
