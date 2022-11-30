@@ -1,7 +1,7 @@
 package com.example.healthmonitor.stream;
 
 import com.example.healthmonitor.model.HealthInfo;
-import com.example.healthmonitor.servcie.HealthMonitorService;
+import com.example.healthmonitor.servcie.HealthInfoAggregateService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 public class StreamConfiguration {
 
     @Autowired
-    private HealthMonitorService healthMonitorService;
+    private HealthInfoAggregateService healthInfoAggregatorService;
     private static long id = 1;
 
     @Bean
@@ -37,10 +37,11 @@ public class StreamConfiguration {
             }
             List<HealthInfo> healthInfos = new ArrayList<>();
             for (int i = 10001; i <= 10005; i++) {
+                double systolicBloodPressure = ThreadLocalRandom.current().nextDouble(60, 200);
                 HealthInfo healthInfo = HealthInfo.builder()
                         .patientId(i)
-                        .systolicBloodPressure(ThreadLocalRandom.current().nextDouble(100, 200))
-                        .diastolicBloodPressure(ThreadLocalRandom.current().nextDouble(100, 200))
+                        .systolicBloodPressure(systolicBloodPressure)
+                        .diastolicBloodPressure(systolicBloodPressure-ThreadLocalRandom.current().nextDouble(20, 50))
                         .heartBeat(ThreadLocalRandom.current().nextInt(100, 200))
                         .createAt(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS))
                         .build();
@@ -54,7 +55,7 @@ public class StreamConfiguration {
     public Consumer<Flux<List<HealthInfo>>> healthInfoConsumer() {
         return flux -> flux
                 .doOnNext(healthInfos -> log.info("received healthInfo = {}", healthInfos))
-                .doOnNext(healthInfos -> healthMonitorService.processHealthInfo(healthInfos))
+                .doOnNext(healthInfos -> healthInfoAggregatorService.putInfo(healthInfos))
                 .subscribe();
     }
 }
