@@ -1,13 +1,18 @@
 package com.example.notification.web;
 
+import com.example.notification.model.Notification;
 import com.example.notification.repository.NotificationRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
+import static com.example.notification.model.Notification.Severity.*;
+import static com.example.notification.model.Notification.Status.CLOSED;
+import static com.example.notification.model.Notification.Status.ONGOING;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
 @Component
@@ -25,56 +30,60 @@ public class NotificationRequestHandler {
         log.info("status = {}", status);
         log.info("severity = {}", severity);
         if (!status.isPresent() && !severity.isPresent())
-            return ok().bodyValue(notificationRepository.findFirstN(limit));
+            return ok()
+                    .bodyValue(notificationRepository
+                            .findAll()
+                            .take(limit))
+                    .onErrorResume(e -> Mono.just("Error " + e.getMessage())
+                    .flatMap(s -> ServerResponse.ok()
+                            .contentType(MediaType.TEXT_PLAIN)
+                            .bodyValue(s)));
         else if (!status.isPresent() && severity.isPresent()) {
             if (severity.get().equals("moderate"))
-                return ok().bodyValue(notificationRepository.findByModerateAmount(limit));
+                return ok()
+                        .bodyValue(notificationRepository.findBySeverity(MODERATE).take(limit))
+                        .onErrorResume(e -> Mono.just("Error " + e.getMessage())
+                                .flatMap(s -> ServerResponse.ok()
+                                        .contentType(MediaType.TEXT_PLAIN)
+                                        .bodyValue(s)));
             else if  (severity.get().equals("severe"))
-                return ok().bodyValue(notificationRepository.findBySevereAmount(limit));
+                return ok()
+                        .bodyValue(notificationRepository.findBySeverity(SEVERE).take(limit))
+                        .onErrorResume(e -> Mono.just("Error " + e.getMessage())
+                                .flatMap(s -> ServerResponse.ok()
+                                        .contentType(MediaType.TEXT_PLAIN)
+                                        .bodyValue(s)));
             else
-                return ok().bodyValue(notificationRepository.getFindByCriticalAmount(limit));
+                return ok()
+                        .bodyValue(notificationRepository.findBySeverity(CRITICAL).take(limit))
+                        .onErrorResume(e -> Mono.just("Error " + e.getMessage())
+                                .flatMap(s -> ServerResponse.ok()
+                                        .contentType(MediaType.TEXT_PLAIN)
+                                        .bodyValue(s)));
         }
         else if (status.isPresent() && !severity.isPresent()) {
             if (status.get().equals("ongoing"))
-                return ok().bodyValue(notificationRepository.findByOngoingAmount(limit));
+                return ok()
+                        .bodyValue(notificationRepository.findByStatus(ONGOING).take(limit))
+                        .onErrorResume(e -> Mono.just("Error " + e.getMessage())
+                                .flatMap(s -> ServerResponse.ok()
+                                        .contentType(MediaType.TEXT_PLAIN)
+                                        .bodyValue(s)));
             else
-                return ok().bodyValue(notificationRepository.findByClosedAmount(limit));
+                return ok()
+                        .bodyValue(notificationRepository.findByStatus(CLOSED).take(limit))
+                        .onErrorResume(e -> Mono.just("Error " + e.getMessage())
+                                .flatMap(s -> ServerResponse.ok()
+                                        .contentType(MediaType.TEXT_PLAIN)
+                                        .bodyValue(s)));
         }
         else {
-            // FIXME
-            return ok().bodyValue(notificationRepository.findFirstN(limit));
+            return ok()
+                    .bodyValue(notificationRepository.findAll().take(limit))
+                    .onErrorResume(e -> Mono.just("Error " + e.getMessage())
+                            .flatMap(s -> ServerResponse.ok()
+                                    .contentType(MediaType.TEXT_PLAIN)
+                                    .bodyValue(s)));
         }
-    }
-
-    Mono<ServerResponse> handleWithModerate(ServerRequest r) {
-        return ok().bodyValue(notificationRepository.findByModerate());
-    }
-
-    Mono<ServerResponse> handleWithModerateAmount(ServerRequest r) {
-        var amount = Integer.parseInt(r.pathVariable("amount"));
-        return ok().bodyValue(notificationRepository.findByModerateAmount(amount));
-    }
-
-    Mono<ServerResponse> handleWithSevere(ServerRequest r) {
-        return ok().bodyValue(notificationRepository.findBySevere());
-    }
-
-    Mono<ServerResponse> handleWithSevereAmount(ServerRequest r) {
-        var amount = Integer.parseInt(r.pathVariable("amount"));
-        return ok().bodyValue(notificationRepository.findBySevereAmount(amount));
-    }
-
-    Mono<ServerResponse> handleWithCritical(ServerRequest r) {
-        return ok().bodyValue(notificationRepository.findByCritical());
-    }
-
-    Mono<ServerResponse> handleWithCriticalAmount(ServerRequest r) {
-        var amount = Integer.parseInt(r.pathVariable("amount"));
-        return ok().bodyValue(notificationRepository.getFindByCriticalAmount(amount));
-    }
-
-    Mono<ServerResponse> handleByNotificationId(ServerRequest r) {
-        var id = r.pathVariable("notificationId");
-        return ok().bodyValue(id+"\n");
     }
 }
