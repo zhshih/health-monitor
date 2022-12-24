@@ -1,14 +1,17 @@
 package com.example.notification.repository;
 
 import com.example.notification.model.Notification;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
+import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 
+@Repository
 public interface NotificationRepository extends ReactiveCrudRepository<Notification, String> {
-//    Flux<Notification> findAllWithLimit(int limit);
+    @Query(value="{'status': ?0}", sort="{'issuedDatetime': 1}")
     Flux<Notification> findByStatus(Notification.Status status);
-//    Flux<Notification> findByStatusWithLimit(Notification.Status status, int limit);
+    @Query(value="{'severity': ?0}", sort="{'issuedDatetime': 1}")
     Flux<Notification> findBySeverity(Notification.Severity severity);
-//    Flux<Notification> findBySeverityWithLimit(Notification.Severity severity, int limit);
-//    Mono<Boolean> existsById(String id);
+    @Query(value="{'severity': ?0, 'status': ?1}", sort="{'issuedDatetime': 1}")
+    Flux<Notification> findBySeverityAndStatus(Notification.Severity severity, Notification.Status status);
 }
