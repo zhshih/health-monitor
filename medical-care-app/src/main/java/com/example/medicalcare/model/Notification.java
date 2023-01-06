@@ -1,4 +1,4 @@
-package com.example.notification.model;
+package com.example.medicalcare.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

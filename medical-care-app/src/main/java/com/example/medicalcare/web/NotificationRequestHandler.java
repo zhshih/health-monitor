@@ -1,21 +1,16 @@
-package com.example.notification.web;
+package com.example.medicalcare.web;
 
-import com.example.notification.model.Notification;
-import com.example.notification.repository.NotificationRepository;
+import com.example.medicalcare.model.Notification;
+import com.example.medicalcare.repository.NotificationRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
-import java.util.Arrays;
-import java.util.Collection;
-
-import static com.example.notification.model.Notification.Severity.*;
-import static com.example.notification.model.Notification.Status.CLOSED;
-import static com.example.notification.model.Notification.Status.ONGOING;
 import static org.springframework.web.reactive.function.BodyInserters.fromPublisher;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
@@ -35,7 +30,7 @@ public class NotificationRequestHandler {
         log.info("severity = {}", severity);
         if (!status.isPresent() && !severity.isPresent())
             return ok()
-                    .body(fromPublisher(
+                    .body(BodyInserters.fromPublisher(
                             notificationRepository
                             .findAll()
                             .take(limit), Notification.class)
@@ -47,8 +42,8 @@ public class NotificationRequestHandler {
         else if (!status.isPresent() && severity.isPresent()) {
             if (severity.get().equals("moderate"))
                 return ok()
-                        .body(fromPublisher(notificationRepository
-                                .findBySeverity(MODERATE)
+                        .body(BodyInserters.fromPublisher(notificationRepository
+                                .findBySeverity(Notification.Severity.MODERATE)
                                 .take(limit), Notification.class))
                         .onErrorResume(e -> Mono.just("Error " + e.getMessage())
                                 .flatMap(s -> ServerResponse.ok()
@@ -56,8 +51,8 @@ public class NotificationRequestHandler {
                                         .bodyValue(s)));
             else if  (severity.get().equals("severe"))
                 return ok()
-                        .body(fromPublisher(notificationRepository
-                                .findBySeverity(SEVERE)
+                        .body(BodyInserters.fromPublisher(notificationRepository
+                                .findBySeverity(Notification.Severity.SEVERE)
                                 .take(limit), Notification.class))
                         .onErrorResume(e -> Mono.just("Error " + e.getMessage())
                                 .flatMap(s -> ServerResponse.ok()
@@ -65,8 +60,8 @@ public class NotificationRequestHandler {
                                         .bodyValue(s)));
             else
                 return ok()
-                        .body(fromPublisher(notificationRepository
-                                .findBySeverity(CRITICAL)
+                        .body(BodyInserters.fromPublisher(notificationRepository
+                                .findBySeverity(Notification.Severity.CRITICAL)
                                 .take(limit), Notification.class))
                         .onErrorResume(e -> Mono.just("Error " + e.getMessage())
                                 .flatMap(s -> ServerResponse.ok()
@@ -76,8 +71,8 @@ public class NotificationRequestHandler {
         else if (status.isPresent() && !severity.isPresent()) {
             if (status.get().equals("ongoing"))
                 return ok()
-                        .body(fromPublisher(notificationRepository
-                                .findByStatus(ONGOING)
+                        .body(BodyInserters.fromPublisher(notificationRepository
+                                .findByStatus(Notification.Status.ONGOING)
                                 .take(limit), Notification.class))
                         .onErrorResume(e -> Mono.just("Error " + e.getMessage())
                                 .flatMap(s -> ServerResponse.ok()
@@ -85,8 +80,8 @@ public class NotificationRequestHandler {
                                         .bodyValue(s)));
             else
                 return ok()
-                        .body(fromPublisher(notificationRepository
-                                .findByStatus(CLOSED)
+                        .body(BodyInserters.fromPublisher(notificationRepository
+                                .findByStatus(Notification.Status.CLOSED)
                                 .take(limit), Notification.class))
                         .onErrorResume(e -> Mono.just("Error " + e.getMessage())
                                 .flatMap(s -> ServerResponse.ok()
@@ -95,7 +90,7 @@ public class NotificationRequestHandler {
         }
         else {
             return ok()
-                    .body(fromPublisher(notificationRepository
+                    .body(BodyInserters.fromPublisher(notificationRepository
                             .findBySeverityAndStatus(
                                     Notification.Severity.valueOf(severity.get()),
                                     Notification.Status.valueOf(status.get()))

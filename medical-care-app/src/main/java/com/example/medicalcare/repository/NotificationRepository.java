@@ -1,6 +1,6 @@
-package com.example.notification.repository;
+package com.example.medicalcare.repository;
 
-import com.example.notification.model.Notification;
+import com.example.medicalcare.model.Notification;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.stereotype.Repository;
