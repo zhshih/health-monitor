@@ -11,16 +11,16 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
 @Configuration
-public class NotificationEndpointConfiguration {
+public class AnomalyEndpointConfiguration {
     @Bean
-    RouterFunction<ServerResponse> nested(NotificationRequestHandler handler) {
+    RouterFunction<ServerResponse> nested(AnomalyRequestHandler handler) {
         var requestPredicate = accept(APPLICATION_JSON).or(accept(APPLICATION_JSON_UTF8));
         return route()
                 .nest(path("/api"), builder -> builder
                         .nest(requestPredicate, nestedBuilder -> nestedBuilder
-                                .GET("/notifications", handler::handleNotification)
-                                .GET("/notifications", queryParam("limit", t -> true),
-                                        handler::handleNotification)
+                                .GET("/anomaly", handler::handleAnomaly)
+                                .GET("/anomaly", queryParam("limit", t -> true),
+                                        handler::handleAnomaly)
                         )
                 )
                 .build();

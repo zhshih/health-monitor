@@ -1,0 +1,23 @@
+spring:
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: medical-care
+
+  cloud:
+    stream:
+      function:
+        definition: anomalySupplier; anomalyConsumer
+
+      bindings:
+        anomalyConsumer-in-0:
+          destination: anomaly
+        medicalInstruction-out-0:
+          destination: medicalInstruction
+
+      kafka:
+        binder:
+          zkNodes: localhost
+          brokers: localhost
+          replication-factor: 1

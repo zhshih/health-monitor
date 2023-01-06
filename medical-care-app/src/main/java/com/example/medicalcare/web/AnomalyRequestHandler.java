@@ -1,7 +1,7 @@
 package com.example.medicalcare.web;
 
-import com.example.medicalcare.model.Notification;
-import com.example.medicalcare.repository.NotificationRepository;
+import com.example.medicalcare.model.Anomaly;
+import com.example.medicalcare.repository.AnomalyRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -16,12 +16,12 @@ import static org.springframework.web.reactive.function.server.ServerResponse.ok
 
 @Component
 @Slf4j
-public class NotificationRequestHandler {
+public class AnomalyRequestHandler {
 
     @Autowired
-    private NotificationRepository notificationRepository;
+    private AnomalyRepository anomalyRepository;
 
-    Mono<ServerResponse> handleNotification(ServerRequest r) {
+    Mono<ServerResponse> handleAnomaly(ServerRequest r) {
         var limit = Integer.parseInt(r.queryParam("limit").orElse("1000"));
         var status = r.queryParam("status");
         var severity = r.queryParam("severity");
@@ -31,9 +31,9 @@ public class NotificationRequestHandler {
         if (!status.isPresent() && !severity.isPresent())
             return ok()
                     .body(BodyInserters.fromPublisher(
-                            notificationRepository
+                            anomalyRepository
                             .findAll()
-                            .take(limit), Notification.class)
+                            .take(limit), Anomaly.class)
                     )
                     .onErrorResume(e -> Mono.just("Error " + e.getMessage())
                     .flatMap(s -> ServerResponse.ok()
@@ -42,27 +42,27 @@ public class NotificationRequestHandler {
         else if (!status.isPresent() && severity.isPresent()) {
             if (severity.get().equals("moderate"))
                 return ok()
-                        .body(BodyInserters.fromPublisher(notificationRepository
-                                .findBySeverity(Notification.Severity.MODERATE)
-                                .take(limit), Notification.class))
+                        .body(BodyInserters.fromPublisher(anomalyRepository
+                                .findBySeverity(Anomaly.Severity.MODERATE)
+                                .take(limit), Anomaly.class))
                         .onErrorResume(e -> Mono.just("Error " + e.getMessage())
                                 .flatMap(s -> ServerResponse.ok()
                                         .contentType(MediaType.TEXT_PLAIN)
                                         .bodyValue(s)));
             else if  (severity.get().equals("severe"))
                 return ok()
-                        .body(BodyInserters.fromPublisher(notificationRepository
-                                .findBySeverity(Notification.Severity.SEVERE)
-                                .take(limit), Notification.class))
+                        .body(BodyInserters.fromPublisher(anomalyRepository
+                                .findBySeverity(Anomaly.Severity.SEVERE)
+                                .take(limit), Anomaly.class))
                         .onErrorResume(e -> Mono.just("Error " + e.getMessage())
                                 .flatMap(s -> ServerResponse.ok()
                                         .contentType(MediaType.TEXT_PLAIN)
                                         .bodyValue(s)));
             else
                 return ok()
-                        .body(BodyInserters.fromPublisher(notificationRepository
-                                .findBySeverity(Notification.Severity.CRITICAL)
-                                .take(limit), Notification.class))
+                        .body(BodyInserters.fromPublisher(anomalyRepository
+                                .findBySeverity(Anomaly.Severity.CRITICAL)
+                                .take(limit), Anomaly.class))
                         .onErrorResume(e -> Mono.just("Error " + e.getMessage())
                                 .flatMap(s -> ServerResponse.ok()
                                         .contentType(MediaType.TEXT_PLAIN)
@@ -71,18 +71,18 @@ public class NotificationRequestHandler {
         else if (status.isPresent() && !severity.isPresent()) {
             if (status.get().equals("ongoing"))
                 return ok()
-                        .body(BodyInserters.fromPublisher(notificationRepository
-                                .findByStatus(Notification.Status.ONGOING)
-                                .take(limit), Notification.class))
+                        .body(BodyInserters.fromPublisher(anomalyRepository
+                                .findByStatus(Anomaly.Status.ONGOING)
+                                .take(limit), Anomaly.class))
                         .onErrorResume(e -> Mono.just("Error " + e.getMessage())
                                 .flatMap(s -> ServerResponse.ok()
                                         .contentType(MediaType.TEXT_PLAIN)
                                         .bodyValue(s)));
             else
                 return ok()
-                        .body(BodyInserters.fromPublisher(notificationRepository
-                                .findByStatus(Notification.Status.CLOSED)
-                                .take(limit), Notification.class))
+                        .body(BodyInserters.fromPublisher(anomalyRepository
+                                .findByStatus(Anomaly.Status.CLOSED)
+                                .take(limit), Anomaly.class))
                         .onErrorResume(e -> Mono.just("Error " + e.getMessage())
                                 .flatMap(s -> ServerResponse.ok()
                                         .contentType(MediaType.TEXT_PLAIN)
@@ -90,11 +90,11 @@ public class NotificationRequestHandler {
         }
         else {
             return ok()
-                    .body(BodyInserters.fromPublisher(notificationRepository
+                    .body(BodyInserters.fromPublisher(anomalyRepository
                             .findBySeverityAndStatus(
-                                    Notification.Severity.valueOf(severity.get()),
-                                    Notification.Status.valueOf(status.get()))
-                            .take(limit), Notification.class))
+                                    Anomaly.Severity.valueOf(severity.get()),
+                                    Anomaly.Status.valueOf(status.get()))
+                            .take(limit), Anomaly.class))
                     .onErrorResume(e -> Mono.just("Error " + e.getMessage())
                             .flatMap(s -> ServerResponse.ok()
                                     .contentType(MediaType.TEXT_PLAIN)

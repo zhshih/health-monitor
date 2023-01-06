@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Notification implements Serializable {
+public class Anomaly implements Serializable {
     public enum Severity {
         MODERATE, SEVERE, CRITICAL
     }
@@ -26,11 +26,18 @@ public class Notification implements Serializable {
         ONGOING, CLOSED
     }
 
+    public enum AnomalyType {
+        BLOOD_PRESSURE, HEART_BEAT
+    }
+
     @Id
     private String id;
+    private Long patientId;
     private String description;
     private Severity severity;
     private Status status;
+    private AnomalyType type;
+    private MedicalInstruction medicalInstruction;
     private LocalDateTime issuedDatetime;
     private LocalDateTime lastProcessedDatetime;
     @Version
