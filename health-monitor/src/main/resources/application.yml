@@ -9,6 +9,8 @@ spring:
           destination: health-info
         healthInfoConsumer-in-0:
           destination: health-info
+        anomaly-out-0:
+          destination: anomaly
 
       kafka:
         binder:

@@ -4,6 +4,7 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 @Document
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 public class AggregatedHealthInfo {
     @Id
     private String id;
+    @NotNull
     private long patientId;
     private double avgSystolicBloodPressure;
     private double minSystolicBloodPressure;

@@ -1,11 +1,18 @@
 package com.example.healthmonitor.servcie;
 
 import com.example.healthmonitor.model.AggregatedHealthInfo;
+import com.example.healthmonitor.model.Anomaly;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.stream.function.StreamBridge;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
 
 import static com.example.healthmonitor.servcie.HealthMonitorService.BloodPressureStatus.*;
 
@@ -17,6 +24,8 @@ public class HealthMonitorService {
         NORMAL, LOW_BLOOD_PRESSURE, PRE_HYPERTENSION, STAGE1_HYPERTENSION, STAGE2_HYPERTENSION
     }
 
+    @Autowired
+    private StreamBridge streamBridge;
     private static HashMap<Long, Integer> lowBloodPressureWatchedMap = new HashMap<>();
     private static HashMap<Long, Integer> preHypertensionWatchedMap = new HashMap<>();
     private static HashMap<Long, Integer> stage1HypertensionWatchedMap = new HashMap<>();
@@ -28,17 +37,42 @@ public class HealthMonitorService {
             processInfo(aggregatedHealthInfo);
         });
         log.info("process healthInfo = " + aggregatedHealthInfos);
-        sendNotification();
+        processAnomaly();
     }
 
-    private void sendNotification() {
+    private void processAnomaly() {
         bloodPressureWatchedMap.forEach(
-                (k, v) -> {
-                    if (v.getRight() == 1) {
-                        log.info("issuing LEVEL 0 notification of {} where patientId = {}", v.getLeft(), k);
+                (id, info) -> {
+                    int counter = info.getRight();
+                    BloodPressureStatus bloodPressureStatus = info.getLeft();
+                    if (counter == 1) {
+                        log.info("LEVEL 0 Anomaly of {} where patientId = {}", bloodPressureStatus, id);
                     }
-                    else if (v.getRight() >= 5) {
-                        log.info("issuing LEVEL 5 notification of {} where patientId = {}", v.getLeft(), k);
+                    else if (counter >= 5) {
+                        log.info("LEVEL 5 Anomaly of {} where patientId = {}", bloodPressureStatus, id);
+                        Anomaly.Severity severity;
+                        if (bloodPressureStatus == PRE_HYPERTENSION) {
+                            severity = Anomaly.Severity.SEVERE;
+                        }
+                        else if (bloodPressureStatus == STAGE1_HYPERTENSION ||
+                                bloodPressureStatus == STAGE2_HYPERTENSION) {
+                            severity = Anomaly.Severity.CRITICAL;
+                        }
+                        else {
+                            severity = Anomaly.Severity.MODERATE;
+                        }
+
+                        Anomaly anomaly = Anomaly.builder()
+                                .id(UUID.randomUUID().toString())
+                                .patientId(id)
+                                .type(Anomaly.AnomalyType.BLOOD_PRESSURE)
+                                .status(Anomaly.Status.ONGOING)
+                                .severity(severity)
+                                .description("this is Anomaly of " + info.getLeft())
+                                .issuedDatetime(LocalDateTime.now())
+                                .build();
+                        log.info("send anomaly = {}", anomaly);
+                        streamBridge.send("anomaly-out-0", MessageBuilder.withPayload(anomaly).build());
                     }
                 }
         );
