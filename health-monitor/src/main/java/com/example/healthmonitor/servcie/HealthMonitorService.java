@@ -63,7 +63,7 @@ public class HealthMonitorService {
                         }
 
                         Anomaly anomaly = Anomaly.builder()
-                                .id(UUID.randomUUID().toString())
+                                .id(UUID.randomUUID().toString().replaceAll("-", ""))
                                 .patientId(id)
                                 .type(Anomaly.AnomalyType.BLOOD_PRESSURE)
                                 .status(Anomaly.Status.ONGOING)

@@ -1,7 +1,9 @@
 package com.example.healthmonitor.stream;
 
 import com.example.healthmonitor.model.HealthInfo;
+import com.example.healthmonitor.model.MedicalInstruction;
 import com.example.healthmonitor.servcie.HealthInfoAggregateService;
+import com.example.healthmonitor.servcie.MedicalInstructionService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -24,6 +26,8 @@ public class StreamConfiguration {
 
     @Autowired
     private HealthInfoAggregateService healthInfoAggregatorService;
+    @Autowired
+    private MedicalInstructionService medicalInstructionService;
     private static long id = 1;
 
     @Bean
@@ -56,6 +60,14 @@ public class StreamConfiguration {
         return flux -> flux
                 .doOnNext(healthInfos -> log.info("received healthInfo = {}", healthInfos))
                 .doOnNext(healthInfos -> healthInfoAggregatorService.putInfo(healthInfos))
+                .subscribe();
+    }
+
+    @Bean
+    public Consumer<Flux<MedicalInstruction>> medicalInstructionConsumer() {
+        return flux -> flux
+                .doOnNext(medicalInstruction -> log.info("received medicalInstruction = {}", medicalInstruction))
+                .doOnNext(medicalInstruction -> medicalInstructionService.process(medicalInstruction))
                 .subscribe();
     }
 }

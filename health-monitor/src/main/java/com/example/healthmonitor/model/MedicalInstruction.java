@@ -19,6 +19,8 @@ public class MedicalInstruction implements Serializable {
     }
 
     private String id;
+    private long version;
+    private String anomalyId;
     private MedicalAction medicalAction;
     private LocalDateTime issuedDatetime;
 }
