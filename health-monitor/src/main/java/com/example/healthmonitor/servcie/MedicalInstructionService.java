@@ -15,6 +15,6 @@ public class MedicalInstructionService {
 
     public void process(MedicalInstruction medicalInstruction) {
         log.info("process medicalInstruction {}", medicalInstruction);
-        medicalInstructionRepository.save(medicalInstruction);
+        medicalInstructionRepository.save(medicalInstruction).subscribe();
     }
 }

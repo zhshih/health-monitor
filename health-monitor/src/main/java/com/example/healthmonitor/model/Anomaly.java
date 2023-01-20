@@ -1,5 +1,6 @@
 package com.example.healthmonitor.model;
 
+import kotlin.jvm.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -35,6 +36,8 @@ public class Anomaly implements Serializable {
     private Severity severity;
     private Status status;
     private AnomalyType type;
+    @Transient
+    private MedicalInstruction medicalInstruction;
     private LocalDateTime issuedDatetime;
     private LocalDateTime lastProcessedDatetime;
 }

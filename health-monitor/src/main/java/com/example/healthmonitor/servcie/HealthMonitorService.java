@@ -2,6 +2,7 @@ package com.example.healthmonitor.servcie;
 
 import com.example.healthmonitor.model.AggregatedHealthInfo;
 import com.example.healthmonitor.model.Anomaly;
+import com.example.healthmonitor.repository.AnomalyRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,12 @@ public class HealthMonitorService {
     private static HashMap<Long, Integer> stage1HypertensionWatchedMap = new HashMap<>();
     private static HashMap<Long, Integer> stage2HypertensionWatchedMap = new HashMap<>();
     private static HashMap<Long, Pair<BloodPressureStatus, Integer>> bloodPressureWatchedMap = new HashMap<>();
+    private AnomalyRepository anomalyRepository;
+
+    @Autowired
+    public HealthMonitorService(AnomalyRepository anomalyRepository) {
+        this.anomalyRepository = anomalyRepository;
+    }
 
     public void processHealthInfo(List<AggregatedHealthInfo> aggregatedHealthInfos) {
         aggregatedHealthInfos.forEach(aggregatedHealthInfo -> {
@@ -71,6 +78,7 @@ public class HealthMonitorService {
                                 .description("this is Anomaly of " + info.getLeft())
                                 .issuedDatetime(LocalDateTime.now())
                                 .build();
+                        anomalyRepository.save(anomaly).subscribe();
                         log.info("send anomaly = {}", anomaly);
                         streamBridge.send("anomaly-out-0", MessageBuilder.withPayload(anomaly).build());
                     }
