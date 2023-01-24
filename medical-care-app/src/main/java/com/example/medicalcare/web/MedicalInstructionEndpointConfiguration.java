@@ -11,16 +11,20 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
 @Configuration
-public class AnomalyEndpointConfiguration {
+public class MedicalInstructionEndpointConfiguration {
     @Bean
-    RouterFunction<ServerResponse> nested(AnomalyRequestHandler handler) {
+    RouterFunction<ServerResponse> nested(MedicalInstructionRequestHandler handler) {
         var requestPredicate = accept(APPLICATION_JSON).or(accept(APPLICATION_JSON_UTF8));
         return route()
-                .nest(path("/api"), builder -> builder
+                .nest(path("/api/medicalCare"), builder -> builder
                         .nest(requestPredicate, nestedBuilder -> nestedBuilder
-                                .GET("/anomaly", handler::handleAnomaly)
-                                .GET("/anomaly", queryParam("limit", t -> true),
-                                        handler::handleAnomaly)
+                                .GET("/medicalInstructions", handler::handleMedicalInstruction)
+                        )
+                        .nest(requestPredicate, nestedBuilder -> nestedBuilder
+                                .GET("/medicalInstructions/patient/{id}", handler::handleMedicalInstructionByPatient)
+                        )
+                        .nest(requestPredicate, nestedBuilder -> nestedBuilder
+                                .GET("/medicalInstructions/anomaly/{id}", handler::handleMedicalInstructionByAnomaly)
                         )
                 )
                 .build();

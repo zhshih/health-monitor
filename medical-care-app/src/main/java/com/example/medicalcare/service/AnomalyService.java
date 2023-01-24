@@ -2,7 +2,8 @@ package com.example.medicalcare.service;
 
 import com.example.medicalcare.model.Anomaly;
 import com.example.medicalcare.model.MedicalInstruction;
-import com.example.medicalcare.repository.AnomalyRepository;
+import com.example.medicalcare.model.MedicalInstructionMessage;
+import com.example.medicalcare.repository.MedicalInstructionRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.function.StreamBridge;
@@ -23,7 +24,7 @@ public class AnomalyService {
     @Autowired
     private StreamBridge streamBridge;
     @Autowired
-    private AnomalyRepository anomalyRepository;
+    private MedicalInstructionRepository medicalInstructionRepository;
 
     public AnomalyService() {
         Runnable runnableTask = () -> {
@@ -46,9 +47,8 @@ public class AnomalyService {
 //                addModerateQueue(anomaly);
                 log.info("add Anomaly={} to moderate Queue", anomaly);
                 MedicalInstruction medicalInstruction = getMedicalInstruction(anomaly);
-                anomaly.setMedicalInstruction(medicalInstruction);
                 sendMedicalInstruction(medicalInstruction);
-                anomalyRepository.save(anomaly).subscribe();
+                medicalInstructionRepository.save(medicalInstruction).subscribe();
             }
             else {
 //                removedModerateQueue(anomaly);
@@ -61,9 +61,8 @@ public class AnomalyService {
 //                addSevereQueue(anomaly);
                 log.info("add Anomaly={} to severe Queue", anomaly);
                 MedicalInstruction medicalInstruction = getMedicalInstruction(anomaly);
-                anomaly.setMedicalInstruction(medicalInstruction);
                 sendMedicalInstruction(medicalInstruction);
-                anomalyRepository.save(anomaly).subscribe();
+                medicalInstructionRepository.save(medicalInstruction).subscribe();
             }
             else {
 //                removedSevereQueue(anomaly);
@@ -76,9 +75,8 @@ public class AnomalyService {
 //                addCriticalQueue(anomaly);
                 log.info("add Anomaly={} to critical Queue", anomaly);
                 MedicalInstruction medicalInstruction = getMedicalInstruction(anomaly);
-                anomaly.setMedicalInstruction(medicalInstruction);
                 sendMedicalInstruction(medicalInstruction);
-                anomalyRepository.save(anomaly).subscribe();
+                medicalInstructionRepository.save(medicalInstruction).subscribe();
             }
             else {
 //                removedCriticalQueue(anomaly);
@@ -100,14 +98,15 @@ public class AnomalyService {
         }
         return MedicalInstruction.builder()
                 .id(UUID.randomUUID().toString().replaceAll("-", ""))
-                .anomalyId(anomaly.getId())
+                .anomaly(anomaly)
                 .medicalAction(action)
                 .issuedDatetime(LocalDateTime.now())
                 .build();
     }
 
     private void sendMedicalInstruction(MedicalInstruction medicalInstruction) {
-        log.info("send medicalInstruction = {}", medicalInstruction);
-        streamBridge.send("medicalInstruction-out-0", MessageBuilder.withPayload(medicalInstruction).build());
+        MedicalInstructionMessage medicalInstructionMessage = MedicalInstructionMessage.from(medicalInstruction);
+        log.info("send medicalInstruction = {}", medicalInstructionMessage);
+        streamBridge.send("medicalInstruction-out-0", MessageBuilder.withPayload(medicalInstructionMessage).build());
     }
 }

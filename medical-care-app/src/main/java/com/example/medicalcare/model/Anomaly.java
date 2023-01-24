@@ -32,12 +32,11 @@ public class Anomaly implements Serializable {
 
     @Id
     private String id;
-    private Long patientId;
+    private long patientId;
     private String description;
     private Severity severity;
     private Status status;
     private AnomalyType type;
-    private MedicalInstruction medicalInstruction;
     private LocalDateTime issuedDatetime;
     private LocalDateTime lastProcessedDatetime;
     @Version

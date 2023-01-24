@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 
+@Document
 @Data
 @Builder
 @AllArgsConstructor
@@ -21,7 +22,7 @@ public class MedicalInstruction implements Serializable {
     }
 
     private String id;
-    private String anomalyId;
+    private Anomaly anomaly;
     private MedicalAction medicalAction;
     private LocalDateTime issuedDatetime;
 }
