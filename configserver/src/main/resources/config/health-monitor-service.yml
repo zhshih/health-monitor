@@ -31,3 +31,12 @@ spring:
       host: localhost
       port: 27017
       database: health-monitor
+
+eureka:
+  instance:
+    preferIpAddress: true
+  client:
+    registerWithEureka: true
+    fetchRegistry: true
+    serviceUrl:
+      defaultZone: http://localhost:8070/eureka/

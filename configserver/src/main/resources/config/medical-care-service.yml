@@ -22,5 +22,14 @@ spring:
           brokers: localhost
           replication-factor: 1
 
+eureka:
+  instance:
+    preferIpAddress: true
+  client:
+    registerWithEureka: true
+    fetchRegistry: true
+    serviceUrl:
+      defaultZone: http://localhost:8070/eureka/
+
 server:
   port: 8090
