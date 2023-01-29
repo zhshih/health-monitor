@@ -1,0 +1,33 @@
+spring:
+  cloud:
+    stream:
+      function:
+        definition: healthInfoSupplier; healthInfoConsumer; medicalInstructionConsumer
+
+      bindings:
+        healthInfoSupplier-out-0:
+          destination: health-info
+        healthInfoConsumer-in-0:
+          destination: health-info
+        anomaly-out-0:
+          destination: anomaly
+        medicalInstructionConsumer-in-0:
+          destination: medicalInstruction
+
+      kafka:
+        binder:
+          zkNodes: localhost
+          brokers: localhost
+          replication-factor: 1
+
+  redis:
+    host: localhost
+    port: 6379
+    database: 0
+    password: my-secret
+
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: health-monitor

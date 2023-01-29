@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: config-server
+  profiles:
+#    active: native, git
+    active: native
+  cloud:
+    config:
+      server:
+        native:
+          search-locations: classpath:/config
+        #git:
+        #  uri: https://gitlab.com/galaxyshih/configuration_repo.git
+        #  searchPaths: microservice-demo/config-server
+        #  default-label: master
+          # the following attributes for authorization is needed
+          # modify it when needed
+        #  username: ""
+        #  password: ""
+server:
+  port: 8071
