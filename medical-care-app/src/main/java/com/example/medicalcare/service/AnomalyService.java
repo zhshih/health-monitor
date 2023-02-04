@@ -4,6 +4,7 @@ import com.example.medicalcare.model.Anomaly;
 import com.example.medicalcare.model.MedicalInstruction;
 import com.example.medicalcare.model.MedicalInstructionMessage;
 import com.example.medicalcare.repository.MedicalInstructionRepository;
+import io.netty.util.HashedWheelTimer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.function.StreamBridge;
@@ -11,6 +12,7 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -25,10 +27,13 @@ public class AnomalyService {
     private StreamBridge streamBridge;
     @Autowired
     private MedicalInstructionRepository medicalInstructionRepository;
+    private HashedWheelTimer hashedWheelTimer;
 
     public AnomalyService() {
         Runnable runnableTask = () -> {
             log.info("runnable is launched");
+            hashedWheelTimer = new HashedWheelTimer(1000,TimeUnit.MILLISECONDS, 64);
+            log.info("timer is submitted");
             while (true) {
                 try {
                     TimeUnit.SECONDS.sleep(1);
@@ -43,44 +48,36 @@ public class AnomalyService {
     public void processAnomaly(Anomaly anomaly) {
         if (anomaly.getSeverity() == Anomaly.Severity.MODERATE) {
             if (anomaly.getStatus() == Anomaly.Status.ONGOING) {
-                // TODO
-//                addModerateQueue(anomaly);
-                log.info("add Anomaly={} to moderate Queue", anomaly);
+                hashedWheelTimer.newTimeout((t) -> {
+                    log.info("send alarm to end user where the {Severity, Status} = {{}, {}}",
+                            anomaly.getSeverity(), anomaly.getStatus());
+                }, 30, TimeUnit.MINUTES);
                 MedicalInstruction medicalInstruction = getMedicalInstruction(anomaly);
                 sendMedicalInstruction(medicalInstruction);
                 medicalInstructionRepository.save(medicalInstruction).subscribe();
-            }
-            else {
-//                removedModerateQueue(anomaly);
-                log.info("remove Anomaly={} from moderate Queue", anomaly);
             }
         }
         else if (anomaly.getSeverity() == Anomaly.Severity.SEVERE) {
             if (anomaly.getStatus() == Anomaly.Status.ONGOING) {
-                // TODO
-//                addSevereQueue(anomaly);
-                log.info("add Anomaly={} to severe Queue", anomaly);
+                hashedWheelTimer.newTimeout((t) -> {
+                    log.info("send alarm to end user where the {Severity, Status} = {{}, {}}",
+                            anomaly.getSeverity(), anomaly.getStatus());
+                }, 15, TimeUnit.MINUTES);
                 MedicalInstruction medicalInstruction = getMedicalInstruction(anomaly);
                 sendMedicalInstruction(medicalInstruction);
                 medicalInstructionRepository.save(medicalInstruction).subscribe();
-            }
-            else {
-//                removedSevereQueue(anomaly);
-                log.info("remove Anomaly={} from severe Queue", anomaly);
             }
         }
         else if (anomaly.getSeverity() == Anomaly.Severity.CRITICAL) {
             if (anomaly.getStatus() == Anomaly.Status.ONGOING) {
-                // TODO
-//                addCriticalQueue(anomaly);
+                hashedWheelTimer.newTimeout((t) -> {
+                    log.info("send alarm to end user where the {Severity, Status} = {{}, {}}",
+                            anomaly.getSeverity(), anomaly.getStatus());
+                }, 1, TimeUnit.MINUTES);
                 log.info("add Anomaly={} to critical Queue", anomaly);
                 MedicalInstruction medicalInstruction = getMedicalInstruction(anomaly);
                 sendMedicalInstruction(medicalInstruction);
                 medicalInstructionRepository.save(medicalInstruction).subscribe();
-            }
-            else {
-//                removedCriticalQueue(anomaly);
-                log.info("remove Anomaly={} from critical Queue", anomaly);
             }
         }
     }
