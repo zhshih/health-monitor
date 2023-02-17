@@ -90,8 +90,8 @@ public class HealthMonitorService {
         double avgSystolicBloodPressure = aggregatedHealthInfo.getAvgSystolicBloodPressure(),
                 avgAvgDiastolicBloodPressure = aggregatedHealthInfo.getAvgDiastolicBloodPressure();
         if (avgSystolicBloodPressure < 90 && avgAvgDiastolicBloodPressure < 60) {
-            log.info("observation of {} is triggered where patientId = {}," +
-                            "avgSystolicBloodPressure = {} and avgAvgDiastolicBloodPressure = {}",
+            log.info("observation of {} is triggered where patientId = {}" +
+                            ", avgSystolicBloodPressure = {} and avgAvgDiastolicBloodPressure = {}",
                     LOW_BLOOD_PRESSURE, aggregatedHealthInfo.getPatientId(),
                     avgSystolicBloodPressure, avgAvgDiastolicBloodPressure);
             Pair<BloodPressureStatus, Integer> watchedInfo = bloodPressureWatchedMap.getOrDefault(
@@ -113,7 +113,7 @@ public class HealthMonitorService {
         else if ((avgSystolicBloodPressure >= 120 && avgSystolicBloodPressure < 140) ||
                 (avgAvgDiastolicBloodPressure >= 80 && avgAvgDiastolicBloodPressure < 90)) {
             log.info("observation of {} is triggered where patientId = {}," +
-                            "avgSystolicBloodPressure = {} and avgAvgDiastolicBloodPressure = {}",
+                            ", avgSystolicBloodPressure = {} and avgAvgDiastolicBloodPressure = {}",
                     PRE_HYPERTENSION, aggregatedHealthInfo.getPatientId(),
                     avgSystolicBloodPressure, avgAvgDiastolicBloodPressure);
             Pair<BloodPressureStatus, Integer> watchedInfo = bloodPressureWatchedMap.getOrDefault(

@@ -4,6 +4,7 @@ import com.example.healthmonitor.model.HealthInfo;
 import com.example.healthmonitor.model.MedicalInstruction;
 import com.example.healthmonitor.servcie.HealthInfoAggregateService;
 import com.example.healthmonitor.servcie.MedicalInstructionService;
+import com.example.healthmonitor.utils.HealthInfoGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -11,11 +12,10 @@ import org.springframework.context.annotation.Configuration;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -24,11 +24,14 @@ import java.util.stream.Stream;
 @Slf4j
 public class StreamConfiguration {
 
+    private static int INIT_PATIENT_ID = 1;
+    private static int MAX_PATIENT_NUM = 5;
+
     @Autowired
     private HealthInfoAggregateService healthInfoAggregatorService;
     @Autowired
     private MedicalInstructionService medicalInstructionService;
-    private static long id = 1;
+    private LocalDateTime prev;
 
     @Bean
     public Supplier<Flux<List<HealthInfo>>> healthInfoSupplier() {
@@ -39,26 +42,27 @@ public class StreamConfiguration {
             } catch (Exception e) {
                 // ignore
             }
-            List<HealthInfo> healthInfos = new ArrayList<>();
-            for (int i = 10001; i <= 10005; i++) {
-                double systolicBloodPressure = ThreadLocalRandom.current().nextDouble(60, 200);
-                HealthInfo healthInfo = HealthInfo.builder()
-                        .patientId(i)
-                        .systolicBloodPressure(systolicBloodPressure)
-                        .diastolicBloodPressure(systolicBloodPressure-ThreadLocalRandom.current().nextDouble(20, 50))
-                        .heartBeat(ThreadLocalRandom.current().nextInt(100, 200))
-                        .createAt(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS))
-                        .build();
-                healthInfos.add(healthInfo);
+            LocalDateTime curr = LocalDateTime.now();
+            List<HealthInfo> healthInfoList = new ArrayList<>();
+            for (int i = INIT_PATIENT_ID; i <= MAX_PATIENT_NUM; i++) {
+                HealthInfoGenerator.HealthInfoType infoType = HealthInfoGenerator.getRandomHealthInfoType(i);
+                if (prev == null || Duration.between(prev, curr).toSeconds() >= 300) {
+                    if (i == INIT_PATIENT_ID) HealthInfoGenerator.generateRandomSeeds();
+                    infoType = HealthInfoGenerator.getRandomHealthInfoType(i);
+                    log.info("infoType = {}, i = {}", infoType, i);
+                    if (i == MAX_PATIENT_NUM) prev = LocalDateTime.now();
+                }
+                HealthInfo healthInfo = HealthInfoGenerator.getRandomInfo(infoType, i);
+                healthInfoList.add(healthInfo);
             }
-            return healthInfos;
+            return healthInfoList;
         })).subscribeOn(Schedulers.boundedElastic()).share();
     }
 
     @Bean
     public Consumer<Flux<List<HealthInfo>>> healthInfoConsumer() {
         return flux -> flux
-                .doOnNext(healthInfos -> log.info("received healthInfo = {}", healthInfos))
+//                .doOnNext(healthInfos -> log.info("received healthInfo = {}", healthInfos))
                 .doOnNext(healthInfos -> healthInfoAggregatorService.putInfo(healthInfos))
                 .subscribe();
     }
