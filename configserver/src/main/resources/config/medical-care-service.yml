@@ -1,7 +1,7 @@
 spring:
   data:
     mongodb:
-      host: localhost
+      host: mongo
       port: 27017
       database: medical-care
 
@@ -18,8 +18,8 @@ spring:
 
       kafka:
         binder:
-          zkNodes: localhost
-          brokers: localhost
+          zkNodes: kafka
+          brokers: kafka
           replication-factor: 1
 
 eureka:
@@ -29,7 +29,7 @@ eureka:
     registerWithEureka: true
     fetchRegistry: true
     serviceUrl:
-      defaultZone: http://localhost:8070/eureka/
+      defaultZone: http://eureka-server:8070/eureka/
 
 server:
   port: 8090
